@@ -13,13 +13,17 @@
 </html>
 
 <script>
+    // code basé sur cette version p5 :
+    // https://p5js.org/examples/simulate-game-of-life.html
+
     function setup()
     {
         createCanvas(700, 700);
     }
 
-    function draw() {
-    background(150);
+    function draw() 
+    {
+        background(150);
     }
 
     let w;
@@ -27,58 +31,103 @@
     let rows;
     let board;
     let next;
+    let running = false;
 
     function setup() {
-    // Set simulation framerate to 10 to avoid flickering
-    frameRate(10);
-    createCanvas(720, 400);
-    w = 20;
-    // Calculate columns and rows
-    columns = floor(width / w);
-    rows = floor(height / w);
-    // Wacky way to make a 2D array is JS
-    board = new Array(columns);
-    for (let i = 0; i < columns; i++) {
-        board[i] = new Array(rows);
-    }
-    // Going to use multiple 2D arrays and swap them
-    next = new Array(columns);
-    for (i = 0; i < columns; i++) {
-        next[i] = new Array(rows);
-    }
-    init();
+        // Setup du canvas
+        frameRate(20);
+        createCanvas(640, 640);
+
+        // Taille des cellules
+        w = 16;
+
+        // Nombre de colonne et de ligne
+        columns = floor(width / w);
+        rows = floor(height / w);
+
+        // Création du tableau de l'état courant
+        board = new Array(columns);
+        for (let i = 0; i < columns; i++) 
+        {
+            board[i] = new Array(rows);
+        }
+
+        // Création du tableau de l'état suivant
+        next = new Array(columns);
+        for (i = 0; i < columns; i++) 
+        {
+            next[i] = new Array(rows);
+        }
+        init();
     }
 
     function draw() {
-    background(255);
-    generate();
-    for ( let i = 0; i < columns;i++) {
-        for ( let j = 0; j < rows;j++) {
-        if ((board[i][j] == 1)) fill(0);
-        else fill(255);
-        stroke(0);
-        rect(i * w, j * w, w-1, w-1);
+        background(255);
+
+        drawCells();
+
+        if (running) {
+            // Génération du nouvel état
+            generate();
+        }
+
+        
+        gridMouseX = floor(mouseX / w) * w;
+        gridMouseY = floor(mouseY / w) * w;
+        fill(50);
+        rect(gridMouseX, gridMouseY, w-1, w-1);
+    }
+    
+    function drawCells() {
+        // Remplissage des cellules
+        for ( let i = 0; i < columns;i++) 
+        {
+            for ( let j = 0; j < rows;j++) 
+            {
+                if ((board[i][j] == 1)) {
+                    fill(0);
+                }
+                else {
+                    if (running)
+                        fill(255);
+                    else
+                        fill(200);
+                }
+                stroke(0);
+                rect(i * w, j * w, w-1, w-1);
+            }
         }
     }
 
+    // Remettre à zéro au clic
+    function mousePressed() 
+    {
+        i = floor(mouseX / w);
+        j = floor(mouseY / w);
+        board[i][j] = 1;
+
+        drawCells;
     }
 
-    // reset board when mouse is pressed
-    function mousePressed() {
-    init();
-    }
-
-    // Fill board randomly
-    function init() {
-    for (let i = 0; i < columns; i++) {
-        for (let j = 0; j < rows; j++) {
-        // Lining the edges with 0s
-        if (i == 0 || j == 0 || i == columns-1 || j == rows-1) board[i][j] = 0;
-        // Filling the rest randomly
-        else board[i][j] = floor(random(2));
-        next[i][j] = 0;
+    function keyPressed()
+    {
+        // Espace
+        if (keyCode == 32) {
+            running = !running;
         }
     }
+
+    // Initialiser le tableau
+    function init() 
+    {
+        for (let i = 0; i < columns; i++) 
+        {
+            for (let j = 0; j < rows; j++) 
+            {
+                board[i][j] = 0;
+                next[i][j] = 0;
+            }
+        }
     }
 
     // The process of creating the new generation
