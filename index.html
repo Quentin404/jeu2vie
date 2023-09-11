@@ -16,11 +16,6 @@
     // code basé sur cette version p5 :
     // https://p5js.org/examples/simulate-game-of-life.html
 
-    function setup()
-    {
-        createCanvas(700, 700);
-    }
-
     function draw() 
     {
         background(150);
@@ -35,8 +30,8 @@
 
     function setup() {
         // Setup du canvas
-        frameRate(20);
-        createCanvas(640, 640);
+        frameRate(10);
+        createCanvas(1200, 600);
 
         // Taille des cellules
         w = 16;
@@ -74,7 +69,7 @@
         
         gridMouseX = floor(mouseX / w) * w;
         gridMouseY = floor(mouseY / w) * w;
-        fill(50);
+        fill(128);
         rect(gridMouseX, gridMouseY, w-1, w-1);
     }
     
@@ -84,16 +79,16 @@
         {
             for ( let j = 0; j < rows;j++) 
             {
-                if ((board[i][j] == 1)) {
-                    fill(0);
+                if (board[i][j] == 0) {
+                    if (!running)
+                        fill(255, 255, 0)
                 }
-                else {
-                    if (running)
-                        fill(255);
-                    else
-                        fill(200);
-                }
-                stroke(0);
+                else
+                    fill(255-(255 / 10 * board[i][j]))
+
+                    // BUG22222222222222222222
+                
+                noStroke()
                 rect(i * w, j * w, w-1, w-1);
             }
         }
@@ -104,7 +99,14 @@
     {
         i = floor(mouseX / w);
         j = floor(mouseY / w);
-        board[i][j] = 1;
+        
+        /*if (board[i][j] == 9)
+            board[i][j] = 0
+        else 
+            board[i][j] = floor(random(5)+5);*/
+
+        board[i][j] = floor(random(5)+5);
+
 
         drawCells;
     }
@@ -114,6 +116,13 @@
         // Espace
         if (keyCode == 32) {
             running = !running;
+        }
+        
+        // N
+        if (keyCode == 78) {
+            // next step
+            generate();
+            drawCells();
         }
     }
 
@@ -135,24 +144,43 @@
 
     // Loop through every spot in our 2D array and check spots neighbors
     for (let x = 1; x < columns - 1; x++) {
-        for (let y = 1; y < rows - 1; y++) {
+    for (let y = 1; y < rows - 1; y++) {
         // Add up all the states in a 3x3 surrounding grid
         let neighbors = 0;
         for (let i = -1; i <= 1; i++) {
-            for (let j = -1; j <= 1; j++) {
-            neighbors += board[x+i][y+j];
+        for (let j = -1; j <= 1; j++) {
+            if (board[x+i][y+j] > 0){
+            neighbors += 1;
             }
+        }
         }
 
         // A little trick to subtract the current cell's state since
         // we added it in the above loop
-        neighbors -= board[x][y];
-        // Rules of Life
-        if      ((board[x][y] == 1) && (neighbors <  2)) next[x][y] = 0;           // Loneliness
-        else if ((board[x][y] == 1) && (neighbors >  3)) next[x][y] = 0;           // Overpopulation
-        else if ((board[x][y] == 0) && (neighbors == 3)) next[x][y] = 1;           // Reproduction
-        else                                             next[x][y] = board[x][y]; // Stasis
+        if (board[x][y] > 0){
+        neighbors -= 1;
         }
+        // Rules of Life
+        if      (board[x][y] >= 9){
+        next[x][y] = board[x][y];           // Sauvegarde
+        }
+        else if      ((board[x][y] > 0) && (neighbors <  2)) {
+        next[x][y] = board[x][y] - 3        // Loneliness
+        }           
+        else if ((board[x][y] > 0) && (neighbors >  3)) {
+        next[x][y] = board[x][y] - 6;       // Overpopulation       
+        } 
+        else if ((board[x][y] < 9) && (neighbors == 3)) {
+        next[x][y] = board[x][y] + 1;     // Reproduction   
+        }       
+        else {                                        
+        next[x][y] = board[x][y];    // Stasis
+        }
+        
+        if (next[x][y] < 0) {
+        next[x][y] = 0;
+        }
+    }
     }
 
     // Swap!
