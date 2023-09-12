@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>jeu2vie</title>
+    <title>IA TP1</title>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.7/p5.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
+    <h1>Jeu de la vie - mode Survie</h3>
+    <p>Les cellules ont des points de vie régissant leur survie dans cet environnement similaire au jeu de la vie de Conway.
+        Les cellules qui ont toute leur vie (complètement noires) restent indéfiniment.
+    </p>
+    <p>Contrôles : clic = placer des cellules | espace = jouer | N = état suivant | X = remettre à zéro</p>
 </body>
 </html>
 
@@ -30,7 +34,7 @@
 
     function setup() {
         // Setup du canvas
-        frameRate(10);
+        frameRate(20);
         createCanvas(1200, 600);
 
         // Taille des cellules
@@ -53,7 +57,7 @@
         {
             next[i] = new Array(rows);
         }
-        init();
+        zeroBoard();
     }
 
     function draw() {
@@ -70,7 +74,7 @@
         gridMouseX = floor(mouseX / w) * w;
         gridMouseY = floor(mouseY / w) * w;
         fill(128);
-        rect(gridMouseX, gridMouseY, w-1, w-1);
+        rect(gridMouseX, gridMouseY, w, w);
     }
     
     function drawCells() {
@@ -79,34 +83,36 @@
         {
             for ( let j = 0; j < rows;j++) 
             {
-                if (board[i][j] == 0) {
-                    if (!running)
-                        fill(255, 255, 0)
-                }
-                else
-                    fill(255-(255 / 10 * board[i][j]))
+                fill(255-(255 / 10 * board[i][j]))
 
-                    // BUG22222222222222222222
-                
+                if (board[i][j] == 0 && !running) {
+                    fill(240, 243, 245)
+                }
+
                 noStroke()
-                rect(i * w, j * w, w-1, w-1);
+                rect(i * w, j * w, w, w);
             }
         }
     }
 
-    // Remettre à zéro au clic
-    function mousePressed() 
+    function mouseDragged() 
+    {
+        editCell();
+    }
+
+    function mousePressed() {
+        editCell();
+    }
+
+    function editCell() 
     {
         i = floor(mouseX / w);
         j = floor(mouseY / w);
         
-        /*if (board[i][j] == 9)
+        if (board[i][j] == 9)
             board[i][j] = 0
         else 
-            board[i][j] = floor(random(5)+5);*/
-
-        board[i][j] = floor(random(5)+5);
-
+            board[i][j] = floor(random(5)+5);
 
         drawCells;
     }
@@ -124,10 +130,15 @@
             generate();
             drawCells();
         }
+
+        // X = réinitialiser le tableau
+        if (keyCode == 88) {
+            zeroBoard();
+        }
     }
 
-    // Initialiser le tableau
-    function init() 
+    // Mettre le tableau à zéro
+    function zeroBoard() 
     {
         for (let i = 0; i < columns; i++) 
         {
