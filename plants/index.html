@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IA TP2</title>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.7/p5.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Plants</h1>
+</body>
+</html>
+
+<script>
+    let axiom = "X";
+    let sentence = axiom;
+    let len = 100;
+    let angle;
+
+    let rules = {
+        "F": "FF",
+        "X": "F-[[X]+X]+F[+FX]-X+[X]"
+    };
+
+    function setAngle(){
+        let randomSignValue = random();
+        angle = radians(random(15,35));
+        if (randomSignValue < 0.5) {
+            angle = -angle
+        }
+    }
+
+    function setup() {
+        createCanvas(950, 650);
+        background(51);
+        setAngle();
+        stroke(255);
+        noFill();
+        turtle();
+        iteration = 0;
+    }
+
+    function keyPressed() {
+            // Espace
+            if (keyCode == 32) {
+                generate();
+            }
+        }
+
+    function generate() {
+        iteration++;
+        if (iteration < 6) {        
+            len *= 0.5;
+            let nextSentence = "";
+            for (let i = 0; i < sentence.length; i++) {
+                let current = sentence.charAt(i);
+                let found = false;
+                for (let j in rules) {
+                    if (current == j) {
+                        found = true;
+                        nextSentence += rules[j];
+                    }
+                }
+                if (!found) {
+                    nextSentence += current;
+                }
+            }
+            sentence = nextSentence;
+            turtle();
+        }
+    }
+
+    function turtle() {
+        background(51);
+
+        noStroke();
+        fill(153, 204, 255);
+        rect(0, 0, width, height/2);
+        fill (89, 51, 8);
+        rect(0, height/2, width, height);
+        strokeWeight(2);
+        stroke(51, 102, 0);
+
+        resetMatrix();
+        translate(width / 2, height /2);
+        scale(1);
+        for (let i = 0; i < sentence.length; i++) {
+            let current = sentence.charAt(i);
+            if (current == "F") {
+            line(0, 0, 0, -len);
+            translate(0, -len);
+            } else if (current == "+") {
+            rotate(angle);
+            } else if (current == "-") {
+            rotate(-angle);
+            } else if (current == "[") {
+            push();
+            } else if (current == "]") {
+            pop();
+            }
+        }
+    }
+</script>
