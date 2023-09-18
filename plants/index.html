@@ -13,6 +13,86 @@
 </html>
 
 <script>
+    class Plant {
+        constructor(axiom, len) {
+            this.axiom = axiom;
+            this.sentence = sentence;
+            this.len = len;
+            this.angle = 0;
+            this.iteration = 0;
+        }
+
+        rules = {
+            "F": "FF",
+            "X": "F-[[X]+X]+F[+FX]-X+[X]"
+        };
+
+        setAngle() {
+            let randomSignValue = random();
+            this.angle = radians(random(15,35));
+            if (randomSignValue < 0.5) {
+                angle = -angle
+            }
+        }
+
+        generate(roots) {
+            this.iteration++;
+            if (this.iteration < 7) {        
+                this.len *= 0.5;
+                let nextSentence = "";
+                for (let i = 0; i < this.sentence.length; i++) {
+                    let current = this.sentence.charAt(i);
+                    let found = false;
+                    for (let j in this.rules) {
+                        if (current == j) {
+                            found = true;
+                            nextSentence += this.rules[j];
+                        }
+                    }
+                    if (!found) {
+                        nextSentence += current;
+                    }
+                }
+                this.sentence = nextSentence;
+                let originX = width/2;
+                let originY = height/2;
+                this.turtle(originX, originY, roots);
+            }
+        }
+
+        turtle(originX, originY, roots) {
+            strokeWeight(2);
+            stroke(51, 102, 0);
+
+            resetMatrix();
+            translate(originX, originY);
+            scale(1);
+            if (roots) {
+                rotate(radians(180));
+                stroke(215, 180, 113);
+            }
+            else {
+                stroke(51, 102, 0);
+            }
+
+            for (let i = 0; i < this.sentence.length; i++) {
+                let current = this.sentence.charAt(i);
+                if (current == "F") {
+                    line(0, 0, 0, -this.len);
+                    translate(0, -this.len);
+                } else if (current == "+") {
+                    rotate(this.angle);
+                } else if (current == "-") {
+                    rotate(-this.angle);
+                } else if (current == "[") {
+                    push();
+                } else if (current == "]") {
+                    pop();
+                }
+            }
+        }
+    }
+
     let axiom = "X";
     let sentence = axiom;
     let len = 100;
@@ -22,56 +102,30 @@
         "F": "FF",
         "X": "F-[[X]+X]+F[+FX]-X+[X]"
     };
-
-    function setAngle(){
-        let randomSignValue = random();
-        angle = radians(random(15,35));
-        if (randomSignValue < 0.5) {
-            angle = -angle
-        }
-    }
-
+    
     function setup() {
-        createCanvas(950, 650);
-        background(51);
-        setAngle();
-        stroke(255);
-        noFill();
-        turtle();
-        iteration = 0;
+        createCanvas(950, 730);
+        drawBackground();
+
+        myplant = new Plant("X", 100);
+        myplant.setAngle();
+
+        
+        myplant2 = new Plant("X", 50);
+        myplant2.setAngle();
     }
 
     function keyPressed() {
-            // Espace
-            if (keyCode == 32) {
-                generate();
-            }
-        }
-
-    function generate() {
-        iteration++;
-        if (iteration < 6) {        
-            len *= 0.5;
-            let nextSentence = "";
-            for (let i = 0; i < sentence.length; i++) {
-                let current = sentence.charAt(i);
-                let found = false;
-                for (let j in rules) {
-                    if (current == j) {
-                        found = true;
-                        nextSentence += rules[j];
-                    }
-                }
-                if (!found) {
-                    nextSentence += current;
-                }
-            }
-            sentence = nextSentence;
-            turtle();
+        // Espace
+        if (keyCode == 32) {
+            //generate(false);
+            drawBackground();
+            myplant.generate();
+            myplant2.generate(true);
         }
     }
 
-    function turtle() {
+    function drawBackground() {
         background(51);
 
         noStroke();
@@ -79,26 +133,5 @@
         rect(0, 0, width, height/2);
         fill (89, 51, 8);
         rect(0, height/2, width, height);
-        strokeWeight(2);
-        stroke(51, 102, 0);
-
-        resetMatrix();
-        translate(width / 2, height /2);
-        scale(1);
-        for (let i = 0; i < sentence.length; i++) {
-            let current = sentence.charAt(i);
-            if (current == "F") {
-            line(0, 0, 0, -len);
-            translate(0, -len);
-            } else if (current == "+") {
-            rotate(angle);
-            } else if (current == "-") {
-            rotate(-angle);
-            } else if (current == "[") {
-            push();
-            } else if (current == "]") {
-            pop();
-            }
-        }
     }
 </script>
