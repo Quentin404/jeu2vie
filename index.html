@@ -69,8 +69,8 @@
             // Génération du nouvel état
             generate();
         }
-
         
+        // Affichage de la cellule visée
         gridMouseX = floor(mouseX / w) * w;
         gridMouseY = floor(mouseY / w) * w;
         fill(128);
@@ -78,7 +78,7 @@
     }
     
     function drawCells() {
-        // Remplissage des cellules
+        // Dessin des cellules
         for ( let i = 0; i < columns;i++) 
         {
             for ( let j = 0; j < rows;j++) 
@@ -95,20 +95,23 @@
         }
     }
 
+    // Contrôle du dessin des cellules grâce à la souris
     function mouseDragged() 
     {
         editCell();
     }
-
     function mousePressed() {
         editCell();
     }
 
+    // Modification des cellules
     function editCell() 
     {
         i = floor(mouseX / w);
         j = floor(mouseY / w);
         
+        // Si la cellule a la vie maximale, on la supprime,
+        // Sinon on lui donne une vie aléatoire avec un minimum de 5 
         if (board[i][j] == 9)
             board[i][j] = 0
         else 
@@ -124,9 +127,8 @@
             running = !running;
         }
         
-        // N
+        // N = procaine étape
         if (keyCode == 78) {
-            // next step
             generate();
             drawCells();
         }
@@ -150,54 +152,58 @@
         }
     }
 
-    // The process of creating the new generation
+    // Génération de la prochaine étape
     function generate() {
+        // Boucle sur chaque case pour observer ses voisins
+        for (let x = 1; x < columns - 1; x++) {
+            for (let y = 1; y < rows - 1; y++) {
+                // Observation des voisins
+                let neighbors = 0;
+                for (let i = -1; i <= 1; i++) {
+                    for (let j = -1; j <= 1; j++) {
+                        if (board[x+i][y+j] > 0) {
+                            neighbors += 1;
+                        }
+                    }
+                }
 
-    // Loop through every spot in our 2D array and check spots neighbors
-    for (let x = 1; x < columns - 1; x++) {
-    for (let y = 1; y < rows - 1; y++) {
-        // Add up all the states in a 3x3 surrounding grid
-        let neighbors = 0;
-        for (let i = -1; i <= 1; i++) {
-        for (let j = -1; j <= 1; j++) {
-            if (board[x+i][y+j] > 0){
-            neighbors += 1;
+                // On enlève l'état de la cellule elle-même
+                if (board[x][y] > 0) {
+                    neighbors -= 1;
+                }
+
+                // Les règles
+                if (board[x][y] >= 9) {
+                    // Persistance
+                    next[x][y] = board[x][y];
+                }
+                else if ((board[x][y] > 0) && (neighbors <  2)) {
+                    // Solitude
+                    next[x][y] = board[x][y] - 3;
+                }           
+                else if ((board[x][y] > 0) && (neighbors >  3)) {
+                    // Surpopulation
+                    next[x][y] = board[x][y] - 6;       
+                } 
+                else if ((board[x][y] < 9) && (neighbors == 3)) {
+                    // Reproduction
+                    next[x][y] = board[x][y] + 1;
+                }       
+                else {
+                    // Stase
+                    next[x][y] = board[x][y];
+                }
+                
+                if (next[x][y] < 0) {
+                    // Mort
+                    next[x][y] = 0;
+                }
             }
         }
-        }
 
-        // A little trick to subtract the current cell's state since
-        // we added it in the above loop
-        if (board[x][y] > 0){
-        neighbors -= 1;
-        }
-        // Rules of Life
-        if      (board[x][y] >= 9){
-        next[x][y] = board[x][y];           // Sauvegarde
-        }
-        else if      ((board[x][y] > 0) && (neighbors <  2)) {
-        next[x][y] = board[x][y] - 3        // Loneliness
-        }           
-        else if ((board[x][y] > 0) && (neighbors >  3)) {
-        next[x][y] = board[x][y] - 6;       // Overpopulation       
-        } 
-        else if ((board[x][y] < 9) && (neighbors == 3)) {
-        next[x][y] = board[x][y] + 1;     // Reproduction   
-        }       
-        else {                                        
-        next[x][y] = board[x][y];    // Stasis
-        }
-        
-        if (next[x][y] < 0) {
-        next[x][y] = 0;
-        }
+        // On échange le tableau
+        let temp = board;
+        board = next;
+        next = temp;
     }
-    }
-
-    // Swap!
-    let temp = board;
-    board = next;
-    next = temp;
-    }
-
 </script>
