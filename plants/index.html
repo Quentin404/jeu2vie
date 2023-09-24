@@ -9,59 +9,132 @@
 </head>
 <body>
     <h1>Plants</h1>
+    <h3>Generate various L-system trees and make them grow!</h3>
+    <p>Click: plant a tree | Space: make the trees grow | R: deforest...</p>
 </body>
 </html>
 
 <script>
+    // Ensemble de nos règles et angles associés pour les L-systèmes 
+    let axiom = "X";
+    let treeLibrary = [
+        {
+            "rule": "F-[[X]+X]+F[+FX]-X+[X]", 
+            "angle": [15, 35]
+        },
+        {
+            "rule": "-F[+F][---X]+F-F[++++X]-X", 
+            "angle": [3, 15]
+        },
+        {
+            "rule": "F+[-F-XF-X][+FF][--XF[+X]][++F-X]", 
+            "angle": [16, 23]
+        },
+        {
+            "rule": "F[-F--X[+FF-X]-XF][+FF+X]", 
+            "angle": [5, 14]
+        }
+    ]
+    let rootsParameters = {
+        "rule": "F[-FF-X][+XFF-X[+FFFX]]",
+        "angle": [25, 35]
+    }
+
+    // La classe principale du L-système qui évolue
+    // Une plante a toujours une autre plante de cette même classe en elle-même qui représente ses racines
     class Plant {
-        constructor(axiom, len) {
-            this.axiom = axiom;
-            this.sentence = sentence;
+        constructor(len, roots, originX) {
+            // Paramètres
             this.len = len;
-            this.angle = 0;
+            this.originX = originX;
+
+            // Initialisation
+            this.sentence = axiom;
             this.iteration = 0;
+            if (!roots) {
+                this.rules = {
+                    "F": "FF",
+                    "X": ""
+                };
+                this.setTreeType();
+
+                let Roots = new Plant(len * .65, true, originX);
+                this.Roots = Roots;
+            } 
+            else {
+                // Si la plante créée est les racines, elle a une règle spéciale
+                this.rules = {
+                    "F": "FF",
+                    "X": rootsParameters.rule
+                };
+                this.setRoots();
+            }
         }
 
-        rules = {
-            "F": "FF",
-            "X": "F-[[X]+X]+F[+FX]-X+[X]"
-        };
+        // On récupère une règle aléatoire pour générer un arbre différent au hasard
+        // L'angle que prendra l'arbre est aussi aléatoire
+        setTreeType() {
+            let randomTreeIndex = floor(random(0, treeLibrary.length));
+            let tree = treeLibrary[randomTreeIndex];
+            
+            this.rules.X = tree.rule;
+            this.maxAngle = tree.angle[0];
+            this.minAngle = tree.angle[1];
+            this.setAngle();
+        }
+
+        setRoots() {
+            this.maxAngle = rootsParameters.angle[0];
+            this.minAngle = rootsParameters.angle[1];
+            this.setAngle();
+        }
 
         setAngle() {
             let randomSignValue = random();
-            this.angle = radians(random(15,35));
-            if (randomSignValue < 0.5) {
-                angle = -angle
+            let angle = radians(random(this.minAngle, this.maxAngle));
+            if (randomSignValue < 0.5)
+                angle = -angle;
+            this.angle = angle;
+        }
+
+        // Evolve est la fonction principale qui fait passer l'arbre d'une étape à la suivante
+        // en faisant évoluer l'arbre en lui-même et ses racines
+        evolve() {
+            if (this.iteration < 6) {
+                this.iteration++;
+                this.generate();
+                this.Roots.generate(true);
+            }
+            else {
+                this.turtle(this.originX, height/2);
+                this.Roots.turtle(this.originX, height/2, true);
             }
         }
 
+        // Generate génère la prochaine étape de l'arbre ou des racines en fonction de son état précédent et de sa règle
         generate(roots) {
-            this.iteration++;
-            if (this.iteration < 7) {        
-                this.len *= 0.5;
-                let nextSentence = "";
-                for (let i = 0; i < this.sentence.length; i++) {
-                    let current = this.sentence.charAt(i);
-                    let found = false;
-                    for (let j in this.rules) {
-                        if (current == j) {
-                            found = true;
-                            nextSentence += this.rules[j];
-                        }
-                    }
-                    if (!found) {
-                        nextSentence += current;
+            this.len *= 0.5;
+            let nextSentence = "";
+            for (let i = 0; i < this.sentence.length; i++) {
+                let current = this.sentence.charAt(i);
+                let found = false;
+                for (let j in this.rules) {
+                    if (current == j) {
+                        found = true;
+                        nextSentence += this.rules[j];
                     }
                 }
-                this.sentence = nextSentence;
-                let originX = width/2;
-                let originY = height/2;
-                this.turtle(originX, originY, roots);
+                if (!found) {
+                    nextSentence += current;
+                }
             }
+            this.sentence = nextSentence;
+            this.turtle(this.originX, height/2, roots);
         }
 
+        // Turtle est la fonction qui dessine l'état de l'arbre ou des racines
         turtle(originX, originY, roots) {
-            strokeWeight(2);
+            strokeWeight(1);
             stroke(51, 102, 0);
 
             resetMatrix();
@@ -93,41 +166,40 @@
         }
     }
 
-    let axiom = "X";
-    let sentence = axiom;
-    let len = 100;
-    let angle;
-
-    let rules = {
-        "F": "FF",
-        "X": "F-[[X]+X]+F[+FX]-X+[X]"
-    };
+    // Le tableau de tous les arbres de la scène
+    let Plants = [];
     
     function setup() {
-        createCanvas(950, 730);
+        createCanvas(windowWidth, windowHeight * .6);
         drawBackground();
-
-        myplant = new Plant("X", 100);
-        myplant.setAngle();
-
-        
-        myplant2 = new Plant("X", 50);
-        myplant2.setAngle();
     }
 
     function keyPressed() {
-        // Espace
+        // Espace : on fait évoluer les arbres
         if (keyCode == 32) {
-            //generate(false);
             drawBackground();
-            myplant.generate();
-            myplant2.generate(true);
+            Plants.forEach(plant => {
+                plant.evolve();
+            });
         }
+        
+        // R : on réinitialise le tableau des arbres
+        if (keyCode == 82) {
+            drawBackground();
+            Plants = [];
+        }
+    }
+
+    function mousePressed() {
+        // Au clic on créer un nouvelle arbre
+        let randomSize = floor(random(25, 50));  // Taille aléatoire de l'arbre
+        let newPlant = new Plant(randomSize, false, mouseX);
+        newPlant.evolve(); // On le fait évolue à son premier stade quand il est créé
+        Plants.push(newPlant);
     }
 
     function drawBackground() {
         background(51);
-
         noStroke();
         fill(153, 204, 255);
         rect(0, 0, width, height/2);
