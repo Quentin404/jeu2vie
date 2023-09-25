@@ -33,6 +33,10 @@
         {
             "rule": "F[-F--X[+FF-X]-XF][+FF+X]", 
             "angle": [5, 14]
+        },
+        {
+            "rule": "FFF[[++F++F++F--F--FX]X--F--F--F--F--FX]--F-F+F-F+FX", 
+            "angle": [10, 20]
         }
     ]
     let rootsParameters = {
@@ -73,8 +77,8 @@
 
         // On récupère une règle aléatoire pour générer un arbre différent au hasard
         // L'angle que prendra l'arbre est aussi aléatoire
-        setTreeType() {
-            let randomTreeIndex = floor(random(0, treeLibrary.length));
+        setTreeType(last) {
+            let randomTreeIndex = (last === true) ? treeLibrary.length-1 : floor(random(0, treeLibrary.length));
             let tree = treeLibrary[randomTreeIndex];
             
             this.rules.X = tree.rule;
@@ -170,7 +174,7 @@
     let Plants = [];
     
     function setup() {
-        createCanvas(windowWidth, windowHeight * .6);
+        createCanvas(windowWidth, windowHeight * .7);
         drawBackground();
     }
 
